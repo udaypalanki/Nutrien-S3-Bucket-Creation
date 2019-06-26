@@ -1,0 +1,40 @@
+version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@0.1.1
+
+jobs:
+  aws-cli:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/install
+      - aws-cli/configure:
+          profile-name: dev
+      - run:
+          name: Create the Redshift Cluster
+          command: |
+            aws cloudformation create-stack \
+            --stack-name AWSREDSHIFT \
+            --template-body file://./src/templates/Redshift.yml \
+            --parameters \
+              ParameterKey=SubnetA,ParameterValue=subnet-d0e1a98c \
+              ParameterKey=SubnetB,ParameterValue=subnet-00a9e667 \
+              ParameterKey=VPCID,ParameterValue=vpc-9daf34e7 \
+              ParameterKey=DataBucketName,ParameterValue=testinguday \
+              ParameterKey=DatabaseName,ParameterValue=udayredshift\
+              ParameterKey=MasterUsername,ParameterValue=admin \
+              ParameterKey=MasterUserPassword,ParameterValue=AdminTest123 \
+              ParameterKey=DeveloperIPAddress,ParameterValue=203.200.210.100 \
+            --capabilities CAPABILITY_IAM \
+            --profile dev
+workflows:
+  version: 2
+  aws-cli:
+    jobs:
+      - aws-cli:
+          context: aws
+          filters:  # using regex filters requires the entire branch to match
+            branches:
+              only:  # only branches matching the below regex filters will run
+                - master
