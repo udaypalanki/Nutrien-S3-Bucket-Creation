@@ -1,0 +1,89 @@
+{
+"AWSTemplateFormatVersion": "2010-09-09",
+	"Resources": {
+		"S3Bucket": {
+                        "Type": "AWS::S3::Bucket"
+         },
+		"CFHelperStack": {
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": "https://s3.amazonaws.com/brine-pond-project/lookup_stack_outputs.template"
+			}
+		},
+		"CFHelper": {
+			"Type": "Custom::CFHelper",
+			"Properties": {
+				"ServiceToken": {
+					"Fn::GetAtt": ["CFHelperStack", "Outputs.LookupStackOutputsArn"]
+				},
+				"StackName": "S3ReferenceLambda"
+			},
+			"DependsOn": [
+				"CFHelperStack"
+			]
+		},
+		"S3PutObject1": {
+			"Type": "Custom::S3PutObject",
+			"Properties": {
+				"ServiceToken": {
+					"Fn::GetAtt": ["CFHelper", "S3PutObjectFunctionArn"]
+				},
+				"Bucket": {
+					"Ref": "S3Bucket"
+				},
+				"Key": "201804/inputs/unzip/"
+			},
+			"DependsOn": [
+				"CFHelper"
+			]
+		},
+		"S3PutObject2": {
+			"Type": "Custom::S3PutObject",
+			"Properties": {
+				"ServiceToken": {
+					"Fn::GetAtt": ["CFHelper", "S3PutObjectFunctionArn"]
+				},
+				"Bucket": {
+					"Ref": "S3Bucket"
+				},
+				"Key": "201804/inputs/docs/",
+				"Body": "Input Documents"
+			},
+			"DependsOn": [
+				"CFHelper"
+			]
+		},
+		"S3PutObject3": {
+			"Type": "Custom::S3PutObject",
+			"Properties": {
+				"ServiceToken": {
+					"Fn::GetAtt": ["CFHelper", "S3PutObjectFunctionArn"]
+				},
+				"Bucket": {
+					"Ref": "S3Bucket"
+				},
+				"Key": "201804/inputs/zip/",
+				"Body": "ZIP"
+			},
+			"DependsOn": [
+				"CFHelper"
+			]
+		},
+		"S3PutObject4": {
+			"Type": "Custom::S3PutObject",
+			"Properties": {
+				"ServiceToken": {
+					"Fn::GetAtt": ["CFHelper", "S3PutObjectFunctionArn"]
+				},
+				"Bucket": {
+					"Ref": "S3Bucket"
+				},
+				"Key": "201804/reports",
+				"Body": "Reports"
+			},
+			"DependsOn": [
+				"CFHelper"
+			]
+		}
+	}
+}
