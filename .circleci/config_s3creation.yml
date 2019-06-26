@@ -1,0 +1,31 @@
+version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@0.1.1
+
+jobs:
+  aws-cli:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/install
+      - aws-cli/configure:
+          profile-name: dev
+      - run:
+          name: Create the S3 Bucket Creation
+          command: |
+            aws cloudformation create-stack \
+            --stack-name Nutrien-S3Bucket-Creation \
+            --template-body file://./src/templates/create_s3_bucket.yml \
+            --capabilities CAPABILITY_IAM \
+            --profile dev
+workflows:
+  version: 2
+  aws-cli:
+    jobs:
+      - aws-cli:
+          context: aws
+          filters:  # using regex filters requires the entire branch to match
+            branches:
+              only:  # only branches matching the below regex filters will run
+                - master
